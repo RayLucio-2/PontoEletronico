@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+     
+ 
+
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ponto Eletrônico - GYN</title>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #fffffeb6;
+      --surface:    #c9c4c4;
+      --surface2:   #fcfaf7;
+      --border:     rgba(0,0,0,0.1);
+      --border2:    rgba(0,0,0,0.18);
+      --text:       #1a1917;
+      --text2:      #000000;
+      --text3:      #555550;
+      --green:      #3B6D11;
+      --green-bg:   #EAF3DE;
+      --amber:      #854F0B;
+      --amber-bg:   #FAEEDA;
+      --coral:      #993C1D;
+      --coral-bg:   #FAECE7;
+      --radius:     12px;
+      --radius-sm:  8px;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .page { max-width: 560px; margin: 0 auto; }
+
+    .header        { margin-bottom: 2rem; }
+    .header-top    { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
+    .app-title     { font-size: 13px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); font-family: 'Arial', sans-serif; }
+    .clock         { font-family: 'Courier New', monospace; font-size: 38px; font-weight: 500; letter-spacing: -1px; color: var(--text); line-height: 1; }
+    .date-str      { font-size: 13px; color: var(--text3); margin-top: 4px; font-family: 'Arial', sans-serif; }
+
+    .analyst-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 1.25rem;
+    }
+    .analyst-section label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 8px;
+      font-family: 'Arial', sans-serif;
+    }
+    .analyst-row { display: flex; gap: 8px; }
+    .analyst-row input {
+      flex: 1;
+      padding: 9px 12px;
+      font-size: 14px;
+      font-family: 'Arial', sans-serif;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .analyst-row input:focus    { border-color: var(--text); }
+    .analyst-row input:disabled { opacity: 0.5; cursor: default; }
+
+    .btn {
+      padding: 9px 16px;
+      font-size: 13px;
+      font-family: 'Arial', sans-serif;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      background: var(--text);
+      color: var(--bg);
+      cursor: pointer;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .btn:hover:not(:disabled) { opacity: 0.8; }
+    .btn:disabled             { opacity: 0.3; cursor: default; }
+
+    .btn-ghost { background: transparent; color: var(--text); }
+    .btn-ghost:hover:not(:disabled) { background: var(--surface2); opacity: 1; }
+
+    .btn-danger { background: #c0392b; color: #fff; border-color: #c0392b; font-size: 12px; padding: 5px 12px; }
+    .btn-danger:hover:not(:disabled) { opacity: 0.85; }
+
+    .signature-section {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border2);
+    }
+
+    .steps { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem; }
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.2s;
+    }
+    .step-card.active    { border-color: var(--border2); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .step-card.done-card { background: var(--surface2); }
+
+    .step-left { display: flex; align-items: center; gap: 12px; }
+
+    .step-dot        { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-entrada     { background: #63a827; }
+    .dot-almoco-s    { background: #e08c00; }
+    .dot-almoco-v    { background: #1D9E75; }
+    .dot-saida       { background: #D85A30; }
+    .dot-disabled    { background: var(--border2); }
+
+    .step-label { font-size: 14px; color: var(--text); font-family: 'Arial', sans-serif; }
+    .step-time  { font-size: 12px; color: var(--text3); margin-top: 2px; font-family: 'Courier New', monospace; }
+
+    .step-btn {
+      padding: 6px 14px;
+      font-size: 12px;
+      font-family: 'Arial', sans-serif;
+      border: 1px solid var(--border2);
+      border-radius: 99px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .step-btn:hover:not(:disabled) { background: var(--surface2); }
+    .step-btn:disabled { opacity: 0.3; cursor: default; }
+    .step-btn.done { border: 1px solid var(--green); color: var(--green); background: var(--green-bg); cursor: default; }
+
+    .summary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 1.25rem;
+      display: none;
+    }
+    .summary-title {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 12px;
+      font-family: 'Arial', sans-serif;
+    }
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .summary-item .label { font-size: 12px; color: var(--text2); font-family: 'Arial', sans-serif; }
+    .summary-item .value { font-size: 22px; font-family: 'Courier New', monospace; color: var(--text); margin-top: 2px; }
+
+    .new-shift { margin-top: 12px; text-align: center; }
+
+    .records-section { display: none; margin-top: 1.5rem; }
+    .records-header  { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+    .records-header h3 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); font-weight: 400; font-family: 'Arial', sans-serif; }
+    .records-actions { display: flex; gap: 6px; }
+    .table-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+    table          { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      text-align: left; color: var(--text3); font-weight: 400;
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+      white-space: nowrap; font-family: 'Arial', sans-serif;
+    }
+    tbody td {
+      padding: 10px 14px; color: var(--text);
+      border-bottom: 1px solid var(--border);
+      font-family: 'Courier New', monospace;
+      font-size: 12px; white-space: nowrap;
+    }
+    tbody td:first-child    { font-family: 'Arial', sans-serif; font-size: 13px; }
+    tbody tr:last-child td  { border-bottom: none; }
+
+    .badge     { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-family: 'Arial', sans-serif; letter-spacing: 0.03em; }
+    .badge.ok  { background: var(--green-bg); color: var(--green); border: 1px solid #c5dfa0; }
+    .badge.inc { background: var(--amber-bg); color: var(--amber); border: 1px solid #f0c87a; }
+
+    .no-records { text-align: center; color: var(--text3); padding: 20px; font-size: 13px; font-family: 'Arial', sans-serif; }
+
+    .in-progress-banner {
+      background: var(--amber-bg);
+      border: 1px solid #f0c87a;
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--amber);
+      margin-bottom: 1rem;
+      display: none;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+    .filter-bar input {
+      padding: 6px 10px; font-size: 13px; font-family: 'Arial', sans-serif;
+      border: 1px solid var(--border2); border-radius: var(--radius-sm);
+      background: var(--bg); color: var(--text); outline: none; width: 180px;
+    }
+    .filter-bar input:focus { border-color: var(--text); }
+    .filter-bar select {
+      padding: 6px 10px; font-size: 13px; font-family: 'Arial', sans-serif;
+      border: 1px solid var(--border2); border-radius: var(--radius-sm);
+      background: var(--bg); color: var(--text); outline: none; cursor: pointer;
+    }
+
+    #signature-status { font-size: 12px; margin-top: 6px; min-height: 18px; font-family: 'Arial', sans-serif; }
+    .sync-row { display: flex; justify-content: flex-end; margin-top: 8px; }
+
+    footer { margin-top: 2.5rem; text-align: center; font-size: 11px; color: var(--text3); letter-spacing: 0.05em; font-family: 'Arial', sans-serif; }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 320px;
+      margin: 1rem;
+    }
+    .modal h4      { font-size: 15px; font-weight: 500; margin-bottom: 8px; font-family: 'Arial', sans-serif; }
+    .modal p       { font-size: 13px; color: var(--text3); margin-bottom: 18px; line-height: 1.5; font-family: 'Arial', sans-serif; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="header">
+    <div class="header-top">
+      <span class="app-title">Ponto Eletrônico</span>
+    </div>
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="date-str" id="date-str">carregando...</div>
+  </div>
+
+  <div class="in-progress-banner" id="in-progress-banner"></div>
+
+  <div class="analyst-section">
+    <label for="analyst-name">Nome do analista</label>
+    <div class="analyst-row">
+      <input type="text" id="analyst-name" placeholder="Digite seu nome..." autocomplete="off" />
+      <button class="btn" id="start-btn">Iniciar dia</button>
+    </div>
+
+    <div class="signature-section" id="signature-section">
+      <label for="signature-code" style="margin-top:4px;">Código de assinatura</label>
+      <div class="analyst-row">
+        <input type="password" id="signature-code" placeholder="Digite seu código..." maxlength="6" autocomplete="off" />
+        <button class="btn" id="verify-signature-btn">Verificar</button>
+      </div>
+      <div id="signature-status"></div>
+    </div>
+  </div>
+
+  <div class="steps" id="steps" style="display:none;">
+
+    <div class="step-card" id="card-entrada">
+      <div class="step-left">
+        <div class="step-dot dot-disabled" id="dot-entrada"></div>
+        <div class="step-info">
+          <div class="step-label">Entrada</div>
+          <div class="step-time" id="time-entrada">aguardando</div>
+        </div>
+      </div>
+      <button class="step-btn" id="btn-entrada" disabled>registrar</button>
+    </div>
+
+    <div class="step-card" id="card-almoco-s">
+      <div class="step-left">
+        <div class="step-dot dot-disabled" id="dot-almoco-s"></div>
+        <div class="step-info">
+          <div class="step-label">Saída para almoço</div>
+          <div class="step-time" id="time-almoco-s">aguardando</div>
+        </div>
+      </div>
+      <button class="step-btn" id="btn-almoco-s" disabled>registrar</button>
+    </div>
+
+    <div class="step-card" id="card-almoco-v">
+      <div class="step-left">
+        <div class="step-dot dot-disabled" id="dot-almoco-v"></div>
+        <div class="step-info">
+          <div class="step-label">Volta do almoço</div>
+          <div class="step-time" id="time-almoco-v">aguardando</div>
+        </div>
+      </div>
+      <button class="step-btn" id="btn-almoco-v" disabled>registrar</button>
+    </div>
+
+    <div class="step-card" id="card-saida">
+      <div class="step-left">
+        <div class="step-dot dot-disabled" id="dot-saida"></div>
+        <div class="step-info">
+          <div class="step-label">Saída</div>
+          <div class="step-time" id="time-saida">aguardando</div>
+        </div>
+      </div>
+      <button class="step-btn" id="btn-saida" disabled>registrar</button>
+    </div>
+
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="summary-title">Resumo do dia</div>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="label">Horas trabalhadas</div>
+        <div class="value" id="sum-total">--</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Pausa almoço</div>
+        <div class="value" id="sum-almoco">--</div>
+      </div>
+    </div>
+    <div id="sheets-status" style="font-size:12px; margin-top:10px; font-family:'Arial',sans-serif; min-height:16px;"></div>
+  </div>
+
+  <div class="new-shift" id="new-shift" style="display:none;">
+    <button class="btn btn-ghost" id="new-shift-btn">+ Registrar outro analista</button>
+  </div>
+
+  <div class="records-section" id="records-section">
+
+    <div class="records-header">
+      <h3>Registros do dia</h3>
+      <div class="records-actions">
+        <button class="btn btn-ghost" style="font-size:12px; padding:5px 12px;" id="export-btn">Exportar CSV</button>
+        <button class="btn btn-danger" id="clear-btn">Limpar registros</button>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <input type="text" id="filter-name" placeholder="Filtrar por nome..." />
+      <select id="filter-status">
+        <option value="">Todos</option>
+        <option value="ok">Completos</option>
+        <option value="inc">Incompletos</option>
+      </select>
+    </div>
+
+    <div class="sync-row">
+      <button class="btn btn-ghost" style="font-size:12px; padding:5px 12px;" id="sync-btn">↑ Sincronizar com Planilhas</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Entrada</th>
+            <th>Saída Almoço</th>
+            <th>Volta Almoço</th>
+            <th>Saída</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="record-body">
+          <tr><td colspan="6" class="no-records">nenhum registro ainda</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <footer>© <span id="year"></span> Rayane Borba</footer>
+
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h4>Limpar todos os registros?</h4>
+    <p>Essa ação apagará permanentemente todos os registros salvos. Exporte o CSV antes se precisar guardar os dados.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modal-cancel-btn">Cancelar</button>
+      <button class="btn btn-danger" id="modal-confirm-btn">Limpar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+
+
+const ASSINATURAS = {
+  'Rayane':    '123456',
+  'Maria':   '12345',
+  'João':          '123456',
+  'Pedro ': '111111',
+  'Ana':     '222222',
+  
+};
+
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxcCyTzV9SfooZl_p0flEXNYO_Uyg9IMyeIEHd5W7Nuz9cKrMKZ1NAn9nbT1avZyGdCGQ/exec';
+
+
+
+const STORAGE_KEY     = 'ponto_records';
+const CURRENT_KEY     = 'ponto_current';
+const SIGNATURE_KEY   = 'ponto_signatures_verified';
+const MAX_RECORD_DAYS = 30;
+
+
+
+const STEPS = ['entrada', 'almoco-s', 'almoco-v', 'saida'];
+
+const DOT_CLASS = {
+  'entrada':  'dot-entrada',
+  'almoco-s': 'dot-almoco-s',
+  'almoco-v': 'dot-almoco-v',
+  'saida':    'dot-saida',
+};
+
+const NEXT_STEP = {
+  'entrada':  'almoco-s',
+  'almoco-s': 'almoco-v',
+  'almoco-v': 'saida',
+};
+
+const DAYS   = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+const MONTHS = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+
+
+
+const el = {
+  clock:              document.getElementById('clock'),
+  dateStr:            document.getElementById('date-str'),
+  analystName:        document.getElementById('analyst-name'),
+  startBtn:           document.getElementById('start-btn'),
+  signatureSection:   document.getElementById('signature-section'),
+  signatureCode:      document.getElementById('signature-code'),
+  verifySignatureBtn: document.getElementById('verify-signature-btn'),
+  signatureStatus:    document.getElementById('signature-status'),
+  steps:              document.getElementById('steps'),
+  summary:            document.getElementById('summary'),
+  sumTotal:           document.getElementById('sum-total'),
+  sumAlmoco:          document.getElementById('sum-almoco'),
+  newShift:           document.getElementById('new-shift'),
+  newShiftBtn:        document.getElementById('new-shift-btn'),
+  recordsSection:     document.getElementById('records-section'),
+  recordBody:         document.getElementById('record-body'),
+  inProgressBanner:   document.getElementById('in-progress-banner'),
+  filterName:         document.getElementById('filter-name'),
+  filterStatus:       document.getElementById('filter-status'),
+  exportBtn:          document.getElementById('export-btn'),
+  clearBtn:           document.getElementById('clear-btn'),
+  syncBtn:            document.getElementById('sync-btn'),
+  modalOverlay:       document.getElementById('modal-overlay'),
+  modalCancelBtn:     document.getElementById('modal-cancel-btn'),
+  modalConfirmBtn:    document.getElementById('modal-confirm-btn'),
+  year:               document.getElementById('year'),
+};
+
+const stepEls = {};
+STEPS.forEach(key => {
+  stepEls[key] = {
+    card: document.getElementById('card-' + key),
+    dot:  document.getElementById('dot-'  + key),
+    btn:  document.getElementById('btn-'  + key),
+    time: document.getElementById('time-' + key),
+  };
+});
+
+
+
+
+const pad = n => String(n).padStart(2, '0');
+
+function nowStr() {
+  const n = new Date();
+  return pad(n.getHours()) + ':' + pad(n.getMinutes()) + ':' + pad(n.getSeconds());
+}
+
+function todayKey() {
+  const n = new Date();
+  return n.getFullYear() + '-' + pad(n.getMonth() + 1) + '-' + pad(n.getDate());
+}
+
+function toSeconds(t) {
+  const [h, m, s] = t.split(':').map(Number);
+  return h * 3600 + m * 60 + (s || 0);
+}
+
+function formatDiff(sec) {
+  if (sec < 0) return '--';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return (h > 0 ? h + 'h ' : '') + m + 'min';
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+
+
+
+function updateClock() {
+  const now = new Date();
+  el.clock.textContent =
+    pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  el.dateStr.textContent =
+    DAYS[now.getDay()] + ', ' + now.getDate() + ' de ' +
+    MONTHS[now.getMonth()] + ' de ' + now.getFullYear();
+}
+
+
+
+function loadRecords() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveRecords() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  } catch (e) {
+    console.error('Erro ao salvar registros:', e);
+  }
+}
+
+function loadCurrent() {
+  try {
+    const raw = localStorage.getItem(CURRENT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveCurrent() {
+  try {
+    if (current) {
+      localStorage.setItem(CURRENT_KEY, JSON.stringify(current));
+    } else {
+      localStorage.removeItem(CURRENT_KEY);
+    }
+  } catch (e) {
+    console.error('Erro ao salvar sessão atual:', e);
+  }
+}
+
+function purgeOldRecords() {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - MAX_RECORD_DAYS);
+  const cutoffStr = cutoff.getFullYear() + '-' +
+    pad(cutoff.getMonth() + 1) + '-' + pad(cutoff.getDate());
+  const before = records.length;
+  records = records.filter(r => r.date >= cutoffStr);
+  if (records.length !== before) saveRecords();
+}
+
+
+
+
+function loadVerifiedSignatures() {
+  try {
+    const raw = localStorage.getItem(SIGNATURE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function saveVerifiedSignature(name) {
+  const sigs = loadVerifiedSignatures();
+  const validUntil = new Date();
+  validUntil.setDate(validUntil.getDate() + 1);
+  sigs[name] = {
+    verified:   true,
+    validUntil: validUntil.toISOString(),
+    verifiedAt: new Date().toISOString(),
+  };
+  try {
+    localStorage.setItem(SIGNATURE_KEY, JSON.stringify(sigs));
+  } catch (e) {
+    console.error('Erro ao salvar assinatura:', e);
+  }
+}
+
+function isSignatureValid(name) {
+  const sigs = loadVerifiedSignatures();
+  const sig = sigs[name];
+  if (!sig) return false;
+  return new Date(sig.validUntil) > new Date();
+}
+
+function showSignatureStatus(msg, isError) {
+  el.signatureStatus.textContent = msg;
+  el.signatureStatus.style.color = isError ? 'var(--coral)' : 'var(--green)';
+}
+
+function verifySignature() {
+  const name = el.analystName.value.trim();
+  const code = el.signatureCode.value.trim();
+
+  if (!name) { showSignatureStatus('Digite o nome primeiro.', true); return; }
+  if (!code) { showSignatureStatus('Digite o código de assinatura.', true); return; }
+
+  const expected = ASSINATURAS[name];
+
+  if (expected && code === expected) {
+    saveVerifiedSignature(name);
+    showSignatureStatus('✓ Assinatura confirmada! Válida por 24h.', false);
+    el.signatureCode.disabled         = true;
+    el.verifySignatureBtn.disabled    = true;
+    el.verifySignatureBtn.textContent = '✓ Verificado';
+    el.startBtn.disabled              = false;
+  } else {
+    showSignatureStatus('Código inválido para "' + escapeHtml(name) + '".', true);
+    el.signatureCode.value = '';
+    el.signatureCode.focus();
+  }
+}
+
+
+
+let records = loadRecords();
+let current = loadCurrent();
+
+
+
+function markStepDone(key, time) {
+  const s = stepEls[key];
+  s.time.textContent = time;
+  s.btn.textContent  = 'registrado';
+  s.btn.classList.add('done');
+  s.btn.disabled     = true;
+  s.dot.className    = 'step-dot ' + DOT_CLASS[key];
+  s.card.classList.remove('active');
+  s.card.classList.add('done-card');
+}
+
+function markStepPending(key) {
+  const s = stepEls[key];
+  s.time.textContent = 'aguardando';
+  s.btn.textContent  = 'registrar';
+  s.btn.classList.remove('done');
+  s.btn.disabled     = true;
+  s.dot.className    = 'step-dot dot-disabled';
+  s.card.classList.remove('done-card', 'active');
+}
+
+function activateStep(key) {
+  stepEls[key].btn.disabled = false;
+  stepEls[key].card.classList.add('active');
+}
+
+
+
+function restoreSession() {
+  if (!current) return;
+
+  if (!isSignatureValid(current.name)) {
+    current = null;
+    saveCurrent();
+    return;
+  }
+
+  el.analystName.value    = current.name;
+  el.analystName.disabled = true;
+  el.startBtn.disabled    = true;
+  el.steps.style.display  = 'flex';
+  el.recordsSection.style.display = 'block';
+
+  let lastDone = null;
+  STEPS.forEach(key => {
+    if (current[key]) {
+      markStepDone(key, current[key]);
+      lastDone = key;
+    } else {
+      markStepPending(key);
+    }
+  });
+
+  if (lastDone && NEXT_STEP[lastDone]) {
+    activateStep(NEXT_STEP[lastDone]);
+  } else if (!lastDone) {
+    activateStep('entrada');
+  }
+
+  el.inProgressBanner.textContent =
+    '⚠ Registro de "' + escapeHtml(current.name) + '" em andamento — continue de onde parou.';
+  el.inProgressBanner.style.display = 'block';
+}
+
+
+
+function startDay() {
+  const name = el.analystName.value.trim();
+  if (!name) { el.analystName.focus(); return; }
+
+  if (!isSignatureValid(name)) {
+    el.signatureSection.style.display = 'block';
+    el.signatureCode.disabled         = false;
+    el.verifySignatureBtn.disabled    = false;
+    el.verifySignatureBtn.textContent = 'Verificar';
+    el.signatureCode.value            = '';
+    el.signatureCode.focus();
+    showSignatureStatus('Assinatura necessária para continuar.', true);
+    el.startBtn.disabled = true;
+    return;
+  }
+
+  const hoje = todayKey();
+  const jaRegistrado = records.find(
+    r => r.date === hoje &&
+         r.name.toLowerCase() === name.toLowerCase() &&
+         r.saida
+  );
+  if (jaRegistrado) {
+    alert('"' + name + '" já possui um registro completo hoje.');
+    return;
+  }
+
+  current = { name, date: hoje, entrada: null, 'almoco-s': null, 'almoco-v': null, saida: null };
+  saveCurrent();
+
+  el.analystName.disabled           = true;
+  el.startBtn.disabled              = true;
+  el.signatureSection.style.display = 'none';
+  el.inProgressBanner.style.display = 'none';
+  el.steps.style.display            = 'flex';
+  el.recordsSection.style.display   = 'block';
+  el.summary.style.display          = 'none';
+  el.newShift.style.display         = 'none';
+
+  STEPS.forEach(markStepPending);
+  activateStep('entrada');
+}
+
+
+
+
+function register(key) {
+  if (!current) return;
+
+  const t = nowStr();
+  current[key] = t;
+  saveCurrent();
+
+  markStepDone(key, t);
+
+  if (NEXT_STEP[key]) {
+    activateStep(NEXT_STEP[key]);
+  }
+
+  if (key === 'saida') finalizeRecord();
+}
+
+
+
+async function finalizeRecord() {
+  const { entrada, 'almoco-s': as_, 'almoco-v': av, saida } = current;
+
+  const almocoDiff = (as_ && av) ? toSeconds(av) - toSeconds(as_) : null;
+
+  let totalDiff = null;
+  if (entrada && saida) {
+    totalDiff = toSeconds(saida) - toSeconds(entrada);
+    if (almocoDiff && almocoDiff > 0) totalDiff -= almocoDiff;
+  }
+
+  el.sumTotal.textContent  = totalDiff  !== null ? formatDiff(totalDiff)  : '--';
+  el.sumAlmoco.textContent = almocoDiff !== null ? formatDiff(almocoDiff) : '--';
+  el.summary.style.display  = 'block';
+  el.newShift.style.display = 'block';
+
+  const idx = records.findIndex(
+    r => r.name === current.name && r.date === current.date && !r.saida
+  );
+  if (idx >= 0) {
+    records[idx] = { ...current };
+  } else {
+    records.push({ ...current });
+  }
+  saveRecords();
+
+  if (GOOGLE_SHEETS_URL) {
+    const sheetsStatus = document.getElementById('sheets-status');
+    if (sheetsStatus) {
+      sheetsStatus.textContent = '↑ Enviando para planilha...';
+      sheetsStatus.style.color = 'var(--amber)';
+    }
+    const snapshot = { ...current };
+    current = null;
+    saveCurrent();
+    renderTable();
+
+    const ok = await sendToSheets(snapshot);
+    if (sheetsStatus) {
+      sheetsStatus.textContent = ok
+        ? '✓ Enviado para a planilha!'
+        : '✗ Falha ao enviar — use "Sincronizar" depois.';
+      sheetsStatus.style.color = ok ? 'var(--green)' : 'var(--coral)';
+    }
+  } else {
+    current = null;
+    saveCurrent();
+    renderTable();
+  }
+}
+
+
+
+function newShift() {
+  el.analystName.value              = '';
+  el.analystName.disabled           = false;
+  el.startBtn.disabled              = false;
+  el.signatureSection.style.display = 'none';
+  el.signatureStatus.textContent    = '';
+  el.steps.style.display            = 'none';
+  el.summary.style.display          = 'none';
+  el.newShift.style.display         = 'none';
+  el.inProgressBanner.style.display = 'none';
+  el.analystName.focus();
+}
+
+
+function renderTable() {
+  const filterName   = el.filterName.value.trim().toLowerCase();
+  const filterStatus = el.filterStatus.value;
+  const hoje         = todayKey();
+
+  let list = records.filter(r => r.date === hoje);
+
+  if (filterName) list = list.filter(r => r.name.toLowerCase().includes(filterName));
+
+  if (filterStatus === 'ok')  list = list.filter(r =>  r.entrada && r['almoco-s'] && r['almoco-v'] && r.saida);
+  if (filterStatus === 'inc') list = list.filter(r => !(r.entrada && r['almoco-s'] && r['almoco-v'] && r.saida));
+
+  if (!list.length) {
+    el.recordBody.innerHTML =
+      '<tr><td colspan="6" class="no-records">nenhum registro encontrado</td></tr>';
+    return;
+  }
+
+  el.recordBody.innerHTML = list.map(r => {
+    const complete = r.entrada && r['almoco-s'] && r['almoco-v'] && r.saida;
+    const badge    = complete
+      ? '<span class="badge ok">completo</span>'
+      : '<span class="badge inc">incompleto</span>';
+    return `<tr>
+      <td>${escapeHtml(r.name)}</td>
+      <td>${r.entrada      || '--'}</td>
+      <td>${r['almoco-s']  || '--'}</td>
+      <td>${r['almoco-v']  || '--'}</td>
+      <td>${r.saida        || '--'}</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+}
+
+
+
+
+function confirmClear() {
+  el.modalOverlay.classList.add('open');
+}
+
+function closeModal() {
+  el.modalOverlay.classList.remove('open');
+}
+
+function clearRecords() {
+  records = [];
+  current = null;
+  saveRecords();
+  saveCurrent();
+  closeModal();
+  renderTable();
+  newShift();
+}
+
+
+function exportCSV() {
+  const hoje = todayKey();
+  const list = records.filter(r => r.date === hoje);
+  if (!list.length) { alert('Nenhum registro para exportar hoje.'); return; }
+
+  const header = 'Nome,Entrada,Saida Almoco,Volta Almoco,Saida,Data\n';
+
+  const rows = list.map(r =>
+    [r.name, r.entrada || '', r['almoco-s'] || '', r['almoco-v'] || '', r.saida || '', r.date]
+      .map(v => '"' + String(v).replace(/"/g, '""') + '"')
+      .join(',')
+  ).join('\n');
+
+  const blob = new Blob(['\uFEFF' + header + rows], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'ponto_' + hoje + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+
+async function sendToSheets(record) {
+ 
+  if (!GOOGLE_SHEETS_URL || !record.saida) return false;
+  try {
+    await fetch(GOOGLE_SHEETS_URL, {
+      method:  'POST',
+      mode:    'no-cors',                          
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body:    JSON.stringify(record),
+    });
+    
+    console.log('✅ Planilhas — enviado:', record.name);
+    return true;
+  } catch (e) {
+
+    console.error('❌ Planilhas — erro de rede:', e.message);
+    return false;
+  }
+}
+
+async function syncAllToSheets() {
+  if (!GOOGLE_SHEETS_URL) {
+    alert('Configure GOOGLE_SHEETS_URL no código para usar esta função.\n\nVeja as instruções comentadas na seção "1. CONFIGURAÇÃO" do script.');
+    return;
+  }
+  const hoje      = todayKey();
+  const completos = records.filter(r => r.date === hoje && r.saida);
+  if (!completos.length) { alert('Nenhum registro completo para sincronizar hoje.'); return; }
+
+  el.syncBtn.disabled    = true;
+  el.syncBtn.textContent = 'Sincronizando...';
+
+  let ok = 0;
+  for (const record of completos) {
+    const sent = await sendToSheets(record);
+    if (sent) ok++;
+  }
+
+  el.syncBtn.disabled    = false;
+  el.syncBtn.textContent = '↑ Sincronizar com Planilhas';
+  if (ok === completos.length) {
+    alert(`✅ ${ok}/${completos.length} registros sincronizados com sucesso!`);
+  } else {
+    alert(`⚠️ ${ok}/${completos.length} enviados. ${completos.length - ok} falharam.\nVerifique o console (F12) para detalhes.`);
+  }
+}
+
+
+
+el.startBtn.addEventListener('click', startDay);
+
+el.verifySignatureBtn.addEventListener('click', verifySignature);
+el.signatureCode.addEventListener('keydown', e => { if (e.key === 'Enter') verifySignature(); });
+
+el.newShiftBtn.addEventListener('click', newShift);
+el.exportBtn.addEventListener('click', exportCSV);
+el.clearBtn.addEventListener('click', confirmClear);
+el.syncBtn.addEventListener('click', syncAllToSheets);
+
+el.modalCancelBtn.addEventListener('click', closeModal);
+el.modalConfirmBtn.addEventListener('click', clearRecords);
+
+el.modalOverlay.addEventListener('click', e => {
+  if (e.target === el.modalOverlay) closeModal();
+});
+
+el.filterName.addEventListener('input', renderTable);
+el.filterStatus.addEventListener('change', renderTable);
+
+STEPS.forEach(key => {
+  stepEls[key].btn.addEventListener('click', () => register(key));
+});
+
+
+
+
+el.year.textContent = new Date().getFullYear();
+
+setInterval(updateClock, 1000);
+updateClock();
+
+purgeOldRecords();
+
+if (records.length > 0) {
+  el.recordsSection.style.display = 'block';
+  renderTable();
+}
+
+restoreSession();
+
+</script>
+</body>
+</html>
